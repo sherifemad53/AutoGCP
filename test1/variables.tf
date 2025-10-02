@@ -1,0 +1,16 @@
+variable "project_project_id" {}
+variable "project_project_name" {}
+variable "project_org_id" {}
+variable "project_billing_account" {}
+variable "project_labels" {}
+variable "vpc_vpc_name" {}
+variable "subnet_subnet_name" {}
+variable "subnet_region" {}
+variable "subnet_vpc_name" {}
+variable "subnet_cidr_range" {}
+variable "bucket_bucket_name" {}
+variable "bucket_region" {}
+variable "compute_vm_name" {}
+variable "compute_machine_type" {}
+variable "compute_zone" {}
+variable "compute_subnet" {}
