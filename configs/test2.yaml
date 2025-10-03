@@ -11,6 +11,7 @@ modules:
   vpc:
       vpc_name: "my-vpc"
   subnet:
+    subnets:
       - name: "my-subnet"
         region: "us-central1"
         vpc_name: module.vpc.vpc_name

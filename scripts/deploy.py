@@ -69,19 +69,33 @@ def generate_tf_project(yaml_file):
         main_tf.append(f'module "{mod_name}" {{')
         main_tf.append(f'  source = "{source}"')
 
+            # if this module is a list-expanding module
+        # if isinstance(mod_conf.get("items"), list):
+        #     for i, item in enumerate(mod_conf["items"]):
+        #         inst_name = f"{mod_name}_{i}"
+        #         main_tf.append(f'module "{inst_name}" {{')
+        #         main_tf.append(f'  source = "{source}"')
+        #         for key in item.keys():
+        #             main_tf.append(f'  {key} = var.{inst_name}_{key}')
+        #             variables_tf.append(f'variable "{inst_name}_{key}" {{}}')
+        #         main_tf.append('  project = module.project.project_id')
+        #         main_tf.append("}\n")
+
+        #         copy_or_create_module(project_dir / "modules" / mod_name, item, source)
+
+        # else:
         for key in mod_conf.keys():
             main_tf.append(f'  {key} = var.{mod_name}_{key}')
             variables_tf.append(f'variable "{mod_name}_{key}" {{}}')
 
-        # inject project references
-        # main_tf.append('  project_id = module.project.project_id')
-        main_tf.append('  project = module.project.project_id')
-        # main_tf.append('  region     = module.project.region')
-        # main_tf.append('  zone       = module.project.zone')
+            # inject project references
+            main_tf.append('  project = module.project.project_id')
+            # main_tf.append('  region     = module.project.region')
+            # main_tf.append('  zone       = module.project.zone')
 
-        main_tf.append("}\n")
+            main_tf.append("}\n")
 
-        copy_or_create_module(project_dir / "modules" / mod_name, mod_conf, source)
+            copy_or_create_module(project_dir / "modules" / mod_name, mod_conf, source)
 
     # Write files
     (project_dir / "main.tf").write_text("\n".join(main_tf))
