@@ -1,9 +1,14 @@
 # compute module
 
 resource "google_compute_instance" "vm" {
-  name         = var.vm_name
-  machine_type = var.machine_type
-  zone         = var.zone
+  for_each      = { for vm in var.vms : vm.vm_name => vm }
+  name = each.value.vm_name
+  machine_type = each.value.machine_type
+  zone = each.value.zone
+  tags = each.value.tags
+
+  
+  
   project = var.project
 
   boot_disk {
@@ -13,7 +18,7 @@ resource "google_compute_instance" "vm" {
   }
 
   network_interface {
-    subnetwork   = var.subnet
+    subnetwork   = each.value.subnet
     access_config {}
   }
 }

@@ -11,3 +11,13 @@ variable "subnet" { type = string }
 variable "project" {
   type = string
 }
+
+variable "vms" {
+  type = list(object({
+    vm_name = string
+    machine_type = string
+    zone = string
+    subnet = string
+  }
+  ))
+}
