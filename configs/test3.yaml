@@ -1,0 +1,36 @@
+project:
+    project_id: "dev-intern-poc"
+    project_name: "Dev intern PoC"
+    org_id: "YOUR_ORG_ID"
+    billing_account: "XXXXXX-XXXXXX-XXXXXX"
+    labels:
+        owner: intern
+        environment: test
+
+modules:
+  vpc:
+      vpc_name: "my-vpc"
+  subnet:
+    vpc_name: module.vpc.vpc_name
+    subnets:
+      - name: "my-subnet"
+        region: "us-central1"
+        vpc_name: module.vpc.vpc_name
+        cidr: "10.0.1.0/24"
+      - name: "my-subne2"
+        region: "us-central1"
+        vpc_name: module.vpc.vpc_name
+        cidr: "10.0.2.0/24"
+  bucket:
+      bucket_name: "my-bucket"
+      region: "us-central1"
+  compute:
+    vms:
+      - vm_name: "my-vm"
+        machine_type: "e2-micro"
+        zone: module.project.zone
+        subnet: module.subnet.subnet_name
+      - vm_name: "my-vm2"
+        machine_type: "e2-micro"
+        zone: module.project.zone
+        subnet: module.subnet.subnet_name
