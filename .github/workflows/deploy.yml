@@ -18,7 +18,7 @@ jobs:
       id-token: write
 
     env:
-      GH_OWNER: your-github-username-or-org
+      GH_OWNER: sherifemad53
       TF_STATE_BUCKET: my-terraform-states
       # AWS_REGION: us-east-1
 
