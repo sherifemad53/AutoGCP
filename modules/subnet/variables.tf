@@ -15,6 +15,5 @@ variable "subnets" {
     name = string
     cidr = string
     region = string
-    
   }))
 }

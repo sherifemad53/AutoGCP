@@ -5,7 +5,7 @@ resource "google_compute_instance" "vm" {
   name = each.value.vm_name
   machine_type = each.value.machine_type
   zone = each.value.zone
-  tags = each.value.tags
+  # tags = each.value.tags
 
   
   

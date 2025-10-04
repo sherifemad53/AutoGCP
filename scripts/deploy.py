@@ -6,17 +6,8 @@ import argparse
 import subprocess
 import shutil
 from pathlib import Path
+from config import MODULE_PATHS
 
-# ---------------- CONFIG ----------------
-MODULE_PATHS = {
-    "project": "./modules/project",
-    "vpc": "./modules/vpc",
-    "subnet": "./modules/subnet",
-    "compute": "./modules/compute",
-    "bucket": "./modules/bucket",
-    "firewall": "./modules/firewall",
-    # add more as needed
-}
 
 MAIN_HEADER = """terraform {
   required_version = ">= 1.5.0"
@@ -89,13 +80,13 @@ def generate_tf_project(yaml_file):
             variables_tf.append(f'variable "{mod_name}_{key}" {{}}')
 
             # inject project references
-            main_tf.append('  project = module.project.project_id')
+        main_tf.append('  project = module.project.project_id')
             # main_tf.append('  region     = module.project.region')
             # main_tf.append('  zone       = module.project.zone')
 
-            main_tf.append("}\n")
+        main_tf.append("}\n")
 
-            copy_or_create_module(project_dir / "modules" / mod_name, mod_conf, source)
+        copy_or_create_module(project_dir / "modules" / mod_name, mod_conf, source)
 
     # Write files
     (project_dir / "main.tf").write_text("\n".join(main_tf))

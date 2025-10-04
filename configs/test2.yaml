@@ -11,20 +11,28 @@ modules:
   vpc:
       vpc_name: "my-vpc"
   subnet:
+    vpc_name: module.vpc.vpc_name
     subnets:
       - name: "my-subnet"
         region: "us-central1"
         vpc_name: module.vpc.vpc_name
-        cidr_range: "10.0.1.0/24"
+        cidr: "10.0.1.0/24"
       - name: "my-subne2"
         region: "us-central1"
         vpc_name: module.vpc.vpc_name
-        cidr_range: "10.0.2.0/24"
+        cidr: "10.0.2.0/24"
   bucket:
       bucket_name: "my-bucket"
       region: "us-central1"
   compute:
-      vm_name: "my-vm"
-      machine_type: "e2-micro"
-      zone: module.project.zone
-      subnet: module.subnet.subnet_name
+    vms:
+      - vm_name: "my-vm"
+        machine_type: "e2-micro"
+        zone: module.project.zone
+        subnet: module.subnet.subnet_name
+        # tags: 'test'
+      - vm_name: "my-vm2"
+        machine_type: "e2-micro"
+        zone: module.project.zone
+        subnet: module.subnet.subnet_name
+        # tags: 'test'
