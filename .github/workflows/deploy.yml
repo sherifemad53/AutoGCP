@@ -1,1 +1,95 @@
 # This script will trigger on every new yaml file added to configs/ and deploy a new terraform project
+
+name: Auto Generate Terraform Project
+
+on:
+  push:
+    paths:
+      - "./configs/*.yaml"
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      id-token: write
+
+    env:
+      GH_OWNER: your-github-username-or-org
+      TF_STATE_BUCKET: my-terraform-states
+      # AWS_REGION: us-east-1
+
+    steps:
+      - name: Checkout main repo
+        uses: actions/checkout@v4
+
+      - name: Setup Python and Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.8.5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install pyyaml
+
+      - name: Find project YAML file
+        id: project
+        run: |
+          FILE=$(ls *.yaml | head -n 1)
+          NAME=$(basename "$FILE" .yaml)
+          echo "project_name=$NAME" >> $GITHUB_OUTPUT
+
+      - name: Generate Terraform project
+        run: python3 scripts/deploy.py ${{ steps.project.outputs.project_name }}.yaml
+
+      - name: Check if GitHub repo exists
+        id: repo_check
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          REPO="${{ env.GH_OWNER }}/${{ steps.project.outputs.project_name }}"
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "Authorization: token $GH_TOKEN" \
+            https://api.github.com/repos/$REPO)
+          echo "status=$STATUS" >> $GITHUB_OUTPUT
+
+      - name: Create repo if missing
+        if: steps.repo_check.outputs.status != '200'
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          echo "Creating new repo: ${{ steps.project.outputs.project_name }}"
+          curl -s -X POST -H "Authorization: token $GH_TOKEN" \
+            -d '{"name":"${{ steps.project.outputs.project_name }}","private":true}' \
+            https://api.github.com/orgs/${{ env.GH_OWNER }}/repos
+
+      - name: Push generated Terraform to target repo
+        run: |
+          cd ${{ steps.project.outputs.project_name }}
+          git init
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git remote add origin https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/${{ env.GH_OWNER }}/${{ steps.project.outputs.project_name }}.git
+          git add .
+          git commit -m "Auto-generated Terraform project"
+          git branch -M main
+          git push -f origin main
+
+      # - name: Configure AWS credentials
+      #   uses: aws-actions/configure-aws-credentials@v4
+      #   with:
+      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      #     aws-region: ${{ env.AWS_REGION }}
+
+      # - name: Initialize Terraform with AWS S3 backend
+      #   working-directory: ${{ steps.project.outputs.project_name }}
+      #   run: |
+      #     terraform init \
+      #       -backend-config="bucket=${{ env.TF_STATE_BUCKET }}" \
+      #       -backend-config="key=${{ steps.project.outputs.project_name }}/terraform.tfstate" \
+      #       -backend-config="region=${{ env.AWS_REGION }}" \
+      #       -backend-config="encrypt=true"

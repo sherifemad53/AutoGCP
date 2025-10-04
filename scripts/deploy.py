@@ -29,7 +29,7 @@ def generate_tf_project(yaml_file):
         config = yaml.safe_load(f) or {}
 
     project_name = Path(yaml_file).stem
-    project_dir = Path(project_name)
+    project_dir = Path("./generated-projects/" + project_name)
     project_dir.mkdir(exist_ok=True)
 
     project_conf = config.get("project") or {}
@@ -60,21 +60,6 @@ def generate_tf_project(yaml_file):
         main_tf.append(f'module "{mod_name}" {{')
         main_tf.append(f'  source = "{source}"')
 
-            # if this module is a list-expanding module
-        # if isinstance(mod_conf.get("items"), list):
-        #     for i, item in enumerate(mod_conf["items"]):
-        #         inst_name = f"{mod_name}_{i}"
-        #         main_tf.append(f'module "{inst_name}" {{')
-        #         main_tf.append(f'  source = "{source}"')
-        #         for key in item.keys():
-        #             main_tf.append(f'  {key} = var.{inst_name}_{key}')
-        #             variables_tf.append(f'variable "{inst_name}_{key}" {{}}')
-        #         main_tf.append('  project = module.project.project_id')
-        #         main_tf.append("}\n")
-
-        #         copy_or_create_module(project_dir / "modules" / mod_name, item, source)
-
-        # else:
         for key in mod_conf.keys():
             main_tf.append(f'  {key} = var.{mod_name}_{key}')
             variables_tf.append(f'variable "{mod_name}_{key}" {{}}')
@@ -96,7 +81,7 @@ def generate_tf_project(yaml_file):
     flat_vars = flatten_vars({"project": project_conf, **modules})
     (project_dir / "terraform.tfvars.json").write_text(json.dumps(flat_vars, indent=2))
 
-    print(f"✅ Project '{project_name}' generated at {project_dir.absolute()}")
+    print(f"DONE Project '{project_name}' generated at {project_dir.absolute()}")
     return project_dir
 
 def flatten_vars(modules: dict):

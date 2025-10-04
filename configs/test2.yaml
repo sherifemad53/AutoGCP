@@ -30,9 +30,7 @@ modules:
         machine_type: "e2-micro"
         zone: module.project.zone
         subnet: module.subnet.subnet_name
-        # tags: 'test'
       - vm_name: "my-vm2"
         machine_type: "e2-micro"
         zone: module.project.zone
         subnet: module.subnet.subnet_name
-        # tags: 'test'
