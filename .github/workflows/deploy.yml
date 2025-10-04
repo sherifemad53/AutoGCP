@@ -45,7 +45,7 @@ jobs:
           echo "project_name=$NAME" >> $GITHUB_OUTPUT
 
       - name: Generate Terraform project
-        run: python3 scripts/deploy.py config/${{ steps.project.outputs.project_name }}.yaml
+        run: python3 scripts/deploy.py configs/${{ steps.project.outputs.project_name }}.yaml
 
       - name: Check if GitHub repo exists
         id: repo_check
