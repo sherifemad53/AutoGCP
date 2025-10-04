@@ -157,7 +157,7 @@ if __name__ == "__main__":
     parser.add_argument("--apply", action="store_true", help="Run 'terraform apply -auto-approve' instead of 'plan'")
     args = parser.parse_args()
 
-    check_gcp_credentials()
+    # check_gcp_credentials()
     yaml_file = args.yaml
     project_dir = generate_tf_project(yaml_file)
-    run_terraform_commands(project_dir, do_apply=args.apply)
+    # run_terraform_commands(project_dir, do_apply=args.apply)
