@@ -29,7 +29,7 @@ def generate_tf_project(yaml_file):
         config = yaml.safe_load(f) or {}
 
     project_name = Path(yaml_file).stem
-    project_dir = Path("./generated-projects/" + project_name)
+    project_dir = Path(project_name)
     project_dir.mkdir(exist_ok=True)
 
     project_conf = config.get("project") or {}
