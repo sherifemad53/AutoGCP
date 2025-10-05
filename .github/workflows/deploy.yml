@@ -30,9 +30,21 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.8.5
+        
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      
+      - name: Set up GitHub CLI
+        run: |
+          sudo apt update
+          sudo apt install gh -y
+
+      - name: Authenticate GitHub CLI
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo $GITHUB_TOKEN | gh auth login --with-token
 
       - name: Install dependencies
         run: pip install pyyaml
@@ -53,20 +65,27 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           REPO="${{ env.GH_OWNER }}/${{ steps.project.outputs.project_name }}"
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-            -H "Authorization: token $GH_TOKEN" \
-            https://api.github.com/repos/$REPO)
-          echo "status=$STATUS" >> $GITHUB_OUTPUT
+          
+          if gh api "repos/$REPO" &>/dev/null; then
+            echo "✅ Repo '$REPO' exists."
+          else
+            echo "🚀 Creating repo '$REPO_NAME'..."
+            gh repo create $REPO --public --description "Auto-generated Terraform project" --confirm
+          fi
 
-      - name: Create repo if missing
-        if: steps.repo_check.outputs.status != '200'
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      - name: changing defualt branch naming to main
         run: |
-          echo "Creating new repo: ${{ steps.project.outputs.project_name }}"
-          curl -s -X POST -H "Authorization: token $GH_TOKEN" \
-            -d '{"name":"${{ steps.project.outputs.project_name }}","private":true}' \
-            https://api.github.com/orgs/${{ env.GH_OWNER }}/repos
+          git config --global init.defaultBranch main
+
+      # - name: Create repo if missing
+      #   if: steps.repo_check.outputs.status != '200'
+      #   env:
+      #     GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      #   run: |
+      #     echo "Creating new repo: ${{ steps.project.outputs.project_name }}"
+      #     curl -s -X POST -H "Authorization: token $GH_TOKEN" \
+      #       -d '{"name":"${{ steps.project.outputs.project_name }}","private":true}' \
+      #       https://api.github.com/orgs/${{ env.GH_OWNER }}/repos
 
       - name: Push generated Terraform to target repo
         run: |
@@ -74,11 +93,55 @@ jobs:
           git init
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git remote add origin https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/${{ env.GH_OWNER }}/${{ steps.project.outputs.project_name }}.git
+          hit remote add origin https://github.com/${{ github.repository_owner }}/${{ steps.create_repo.outputs.project_name }}.git
           git add .
           git commit -m "Auto-generated Terraform project"
           git branch -M main
           git push -f origin main
+
+
+      # - name: Create new repository
+      #   id: create_repo
+      #   run: |
+      #     PROJECT_NAME=$(basename ${{ github.event.inputs.config_file }} .yaml)
+      #     TIMESTAMP=$(date +%s)
+      #     NEW_REPO_NAME="${PROJECT_NAME}-${TIMESTAMP}"
+      #     echo "Repository Name: $NEW_REPO_NAME"
+      #     gh repo create $NEW_REPO_NAME --public --description "Auto-generated Terraform project" --confirm
+      #     echo "repo_name=$NEW_REPO_NAME" >> $GITHUB_OUTPUT
+
+      # - name: Push generated project to new repo
+      #   run: |
+      #     PROJECT_DIR=$(basename ${{ github.event.inputs.config_file }} .yaml)
+      #     cd $PROJECT_DIR
+      #     git init
+      #     git branch -M main
+      #     git add .
+      #     git commit -m "Initial commit"
+      #     git remote add origin https://github.com/${{ github.repository_owner }}/${{ steps.create_repo.outputs.repo_name }}.git
+      #     git push -u origin main
+
+      # - name: Terraform Init
+      #   run: |
+      #     cd $(basename ${{ github.event.inputs.config_file }} .yaml)
+      #     terraform init \
+      #       -backend-config="bucket=central-tf-states" \
+      #       -backend-config="region=us-east-1" \
+      #       -backend-config="key=$(basename ${{ github.event.inputs.config_file }} .yaml)/terraform.tfstate" \
+      #       -backend-config="dynamodb_table=tf-locks"
+
+      # - name: Terraform Plan
+      #   run: |
+      #     cd $(basename ${{ github.event.inputs.config_file }} .yaml)
+      #     terraform plan
+
+      # - name: Terraform Apply
+      #   run: |
+      #     cd $(basename ${{ github.event.inputs.config_file }} .yaml)
+      #     terraform apply -auto-approve
+
+
+
 
       # - name: Configure AWS credentials
       #   uses: aws-actions/configure-aws-credentials@v4
