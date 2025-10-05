@@ -35,10 +35,14 @@ jobs:
         with:
           python-version: "3.11"
       
-      - name: Set up GitHub CLI
+      # - name: Set up GitHub CLI
+      #   run: |
+      #     sudo apt update
+      #     sudo apt install gh -y
+
+      - name: changing defualt branch naming to main
         run: |
-          sudo apt update
-          sudo apt install gh -y
+          git config --global init.defaultBranch main
 
       # - name: Authenticate GitHub CLI
       #   env:
@@ -59,6 +63,10 @@ jobs:
       - name: Generate Terraform project
         run: python3 scripts/deploy.py configs/${{ steps.project.outputs.project_name }}.yaml
 
+
+      - name: List generated files
+        run: ls -la ${{ steps.project.outputs.project_name }}
+
       - name: Check if GitHub repo exists
         id: repo_check
         env:
@@ -73,9 +81,7 @@ jobs:
             gh repo create $REPO --public --description "Auto-generated Terraform project" --confirm
           fi
 
-      - name: changing defualt branch naming to main
-        run: |
-          git config --global init.defaultBranch main
+
 
       # - name: Create repo if missing
       #   if: steps.repo_check.outputs.status != '200'
